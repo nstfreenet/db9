@@ -236,33 +236,10 @@ wget -O /etc/issues.net "https://raw.githubusercontent.com/nstfreenet/janda/mast
 sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issues.net"@g' /etc/default/dropbear
 
-# download script
-cd /usr/bin
-wget -O menu "https://raw.githubusercontent.com/nstfreenet/janda/master/menu.sh"
-wget -O usernew "https://raw.githubusercontent.com/nstfreenet/janda/master/usernew.sh"
-wget -O trial "https://raw.githubusercontent.com/nstfreenet/janda/master/trial.sh"
-wget -O hapus "https://raw.githubusercontent.com/nstfreenet/janda/master/hapus.sh"
-wget -O member "https://raw.githubusercontent.com/nstfreenet/janda/master/member.sh"
-wget -O delete "https://raw.githubusercontent.com/nstfreenet/janda/master/delete.sh"
-wget -O cek "https://raw.githubusercontent.com/nstfreenet/janda/master/cek.sh"
-wget -O restart "https://raw.githubusercontent.com/nstfreenet/janda/master/restart.sh"
-wget -O speedtest "https://raw.githubusercontent.com/nstfreenet/janda/master/speedtest_cli.py"
-wget -O info "https://raw.githubusercontent.com/nstfreenet/janda/master/info.sh"
-wget -O about "https://raw.githubusercontent.com/nstfreenet/janda/master/about.sh"
-
-echo "0 0 * * * root /sbin/reboot" > /etc/cron.d/reboot
-
+# Configure menu
+wget https://raw.githubusercontent.com/nstfreenet/nine9/master/menu
 chmod +x menu
-chmod +x usernew
-chmod +x trial
-chmod +x hapus
-chmod +x member
-chmod +x delete
-chmod +x cek
-chmod +x restart
-chmod +x speedtest
-chmod +x info
-chmod +x about
+./menu
 
 # finishing
 cd
