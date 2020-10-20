@@ -254,9 +254,13 @@ openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
 -subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
 cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
 
-# konfigurasi stunnel
+# configure stunnel
 sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-/etc/init.d/stunnel4 restart
+cd /etc/stunnel/
+wget -O /etc/stunnel/ssl.conf "https://raw.githubusercontent.com/janda09/install/master/ssl.conf"
+sed -i $MYIP2 /etc/stunnel/ssl.conf;
+cp ssl.conf /home/vps/public_html/
+cd
 
 # install fail2ban
 apt-get -y install fail2ban
