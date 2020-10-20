@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Original script by fornesia, rzengineer and fawzya 
-# Mod by NSTFREENET
+# Mod by JSTFREENET
 # 
 # ==================================================
 
@@ -112,10 +112,10 @@ apt-get -y update
 cd
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
-wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/GanzKurosaki/install/master/nginx.conf"
+wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/janda09/install/master/nginx.conf"
 mkdir -p /home/vps/public_html
-echo "<pre>Setup by gcsumardani</pre>" > /home/vps/public_html/index.html
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/GanzKurosaki/install/master/vps.conf"
+echo "<pre>Setup by Ipang Nett Nott</pre>" > /home/vps/public_html/index.html
+wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/janda09/install/master/vps.conf"
 
 # install badvpn
 cd
