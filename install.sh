@@ -17,8 +17,8 @@ state=JAWATENGAH
 locality=Indonesia
 organization=GROBOGAN
 organizationalunit=JOMBLOSSH
-commonname=NSTFREENET.ID
-email=admin@NSTPROJECT
+commonname=JSTFREENET.ID
+email=admin@JSTPROJECT
 
 # simple password minimal
 wget -O /etc/pam.d/common-password "https://raw.githubusercontent.com/nstfreenet/janda/master/common-password-deb9"
@@ -103,7 +103,7 @@ apt-get -y install neofetch
 cd
 echo "clear" >> .profile
 echo "neofetch" >> .profile
-echo "echo by NSTFREENET" >> .profile
+echo "echo by JSTFREENET" >> .profile
 
 # instal php5.6 ubuntu 16.04 64bit
 apt-get -y update
@@ -116,6 +116,73 @@ wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/janda09/install
 mkdir -p /home/vps/public_html
 echo "<pre>Setup by Ipang Nett Nott</pre>" > /home/vps/public_html/index.html
 wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/janda09/install/master/vps.conf"
+
+# install openvpn
+apt-get -y install openvpn easy-rsa openssl
+cp -r /usr/share/easy-rsa/ /etc/openvpn
+mkdir /etc/openvpn/easy-rsa/keys
+sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="ID"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="JATIM"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="KEDIRI"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="JandaBaper"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="zuhriirfan09@gmail.com"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="IPANG"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="IPANG"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_OU=changeme|export KEY_OU=IPANG|' /etc/openvpn/easy-rsa/vars
+
+# Create Diffie-Helman Pem
+openssl dhparam -out /etc/openvpn/dh2048.pem 2048
+
+# Create PKI
+cd /etc/openvpn/easy-rsa
+cp openssl-1.0.0.cnf openssl.cnf
+. ./vars
+./clean-all
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" --initca $*
+
+# Create key server
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" --server server
+
+# Setting KEY CN
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" client
+
+# cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
+cd
+cp /etc/openvpn/easy-rsa/keys/server.crt /etc/openvpn/server.crt
+cp /etc/openvpn/easy-rsa/keys/server.key /etc/openvpn/server.key
+cp /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
+chmod +x /etc/openvpn/ca.crt
+
+# server settings
+cd /etc/openvpn/
+wget -O /etc/openvpn/server.conf "https://raw.githubusercontent.com/janda09/install/master/server.conf"
+systemctl start openvpn@server
+sysctl -w net.ipv4.ip_forward=1
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+iptables-save > /etc/iptables.up.rules
+wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/janda09/install/master/iptables"
+chmod +x /etc/network/if-up.d/iptables
+sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
+systemctl daemon-reload
+/etc/init.d/openvpn restart
+
+# openvpn config
+wget -O /etc/openvpn/client.ovpn "https://raw.githubusercontent.com/janda09/install/master/client.conf"
+sed -i $MYIP2 /etc/openvpn/client.ovpn;
+echo '<ca>' >> /etc/openvpn/client.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/client.ovpn
+echo '</ca>' >> /etc/openvpn/client.ovpn
+cp client.ovpn /home/vps/public_html/
+wget -O /etc/openvpn/openvpnssl.ovpn "https://raw.githubusercontent.com/janda09/install/master/openvpnssl.conf"
+echo '<ca>' >> /etc/openvpn/openvpnssl.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/openvpnssl.ovpn
+echo '</ca>' >> /etc/openvpn/openvpnssl.ovpn
+cp openvpnssl.ovpn /home/vps/public_html/
 
 # install badvpn
 cd
@@ -143,22 +210,16 @@ echo "/usr/sbin/nologin" >> /etc/shells
 /etc/init.d/dropbear restart
 
 # install squid
-cd
-apt-get -y install squid3
-wget -O /etc/squid/squid.conf "https://raw.githubusercontent.com/GanzKurosaki/install/master/squid3.conf"
-sed -i $MYIP2 /etc/squid/squid.conf
+apt-get -y install squid
+wget -O /etc/squid/squid.conf "https://raw.githubusercontent.com/janda09/install/master/squid3.conf"
+sed -i $MYIP2 /etc/squid/squid.conf;
 
 # setting vnstat
 apt-get -y update;apt-get -y install vnstat;vnstat -u -i eth0;service vnstat restart 
 
 # install webmin
-cd
-wget http://prdownloads.sourceforge.net/webadmin/webmin_1.910_all.deb
-dpkg --install webmin_1.910_all.deb;
-apt-get -y -f install;
+apt-get -y install webmin
 sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
-rm -f webmin_1.910_all.deb
-/etc/init.d/webmin restart
 
 # install stunnel
 apt-get install stunnel4 -y
@@ -230,6 +291,10 @@ echo 'Please send in your comments and/or suggestions to zaf@vsnl.com'
 # xml parser
 cd
 apt-get install -y libxml-parser-perl
+
+# compress configs
+cd /home/vps/public_html
+zip jst.zip ssl.conf openvpnssl.ovpn client.ovpn
 
 # banner /etc/issue.net
 wget -O /etc/issues.net "https://raw.githubusercontent.com/nstfreenet/janda/master/issue.net"
@@ -331,7 +396,7 @@ echo "Webmin   : http://$MYIP:10000/"  | tee -a log-install.txt
 echo "Timezone : Asia/Jakarta (GMT +7)"  | tee -a log-install.txt
 echo "IPv6     : [off]"  | tee -a log-install.txt
 echo ""  | tee -a log-install.txt
-echo "Original Script by NSTFREENET"  | tee -a log-install.txt
+echo "Original Script by JSTFREENET"  | tee -a log-install.txt
 echo ""  | tee -a log-install.txt
 echo "Installation Log --> /root/log-install.txt"  | tee -a log-install.txt
 echo ""  | tee -a log-install.txt
